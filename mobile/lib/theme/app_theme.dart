@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 ThemeData buildFlashcardsTheme() {
-  const seed = Color(0xFF4F46E5);
+  const seed = Color(0xFF4B2389);
   final colorScheme = ColorScheme.fromSeed(
     seedColor: seed,
     brightness: Brightness.light,

@@ -63,7 +63,7 @@ flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8080
    | `DATABASE_PASSWORD` | Neon password |
    | `CORS_ORIGINS` | Optional extra origins (comma-separated) |
 
-4. Deploy from `main`; note the public API URL (e.g. `https://flashcards-api.onrender.com`).
+4. Deploy from `main`; note the public API URL (e.g. `https://flashcards-api-ugap.onrender.com`).
 
 Prod uses Hikari `minimum-idle: 0` and a 60s idle timeout for Neon suspend; DB health check is disabled so Render health checks do not wake the database.
 
