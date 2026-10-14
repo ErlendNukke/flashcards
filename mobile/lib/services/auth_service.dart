@@ -79,6 +79,13 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
   }
 
+  @visibleForTesting
+  void applyTestSession({required String token, required AppUser user}) {
+    _api.token = token;
+    this.user = user;
+    notifyListeners();
+  }
+
   Future<void> _persist(Map<String, dynamic> res) async {
     final token = res['token'] as String;
     final userJson = res['user'] as Map<String, dynamic>;
