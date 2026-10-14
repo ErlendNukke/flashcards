@@ -69,7 +69,11 @@ const loginPage = await context.newPage();
 await primeStorage(loginPage, { loggedIn: false });
 await loginPage.goto('/', { waitUntil: 'domcontentloaded' });
 await loginPage.waitForTimeout(10000);
-await loginPage.getByRole('button', { name: 'Log in' }).waitFor({ timeout: 120_000 });
+await loginPage.getByRole('button', { name: 'Sign up' }).waitFor({ timeout: 120_000 });
+await loginPage.screenshot({ path: join(outDir, 'welcome-landing.png'), fullPage: true });
+
+await loginPage.getByRole('button', { name: 'Log in' }).click();
+await loginPage.getByLabel('Username').waitFor({ timeout: 30_000 });
 await loginPage.screenshot({ path: join(outDir, 'auth-login.png'), fullPage: true });
 
 await loginPage.getByRole('button', { name: 'Create an account' }).click();
