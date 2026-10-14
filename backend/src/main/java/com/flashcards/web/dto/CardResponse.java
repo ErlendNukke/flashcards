@@ -9,6 +9,7 @@ public record CardResponse(
         UUID id,
         String question,
         String answer,
+        UUID folderId,
         Instant createdAt,
         Instant updatedAt
 ) {
@@ -17,6 +18,7 @@ public record CardResponse(
                 card.getId(),
                 card.getQuestion(),
                 card.getAnswer(),
+                card.getFolderId(),
                 card.getCreatedAt(),
                 card.getUpdatedAt()
         );

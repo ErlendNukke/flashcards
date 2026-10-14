@@ -1,8 +1,9 @@
 import 'package:flashcards/core/config.dart';
-import 'package:flashcards/screens/deck_screen.dart';
+import 'package:flashcards/screens/home_screen.dart';
 import 'package:flashcards/services/api_client.dart';
 import 'package:flashcards/services/card_service.dart';
 import 'package:flashcards/services/device_id_service.dart';
+import 'package:flashcards/services/folder_service.dart';
 import 'package:flashcards/theme/app_theme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -38,6 +39,7 @@ Future<void> main() async {
       providers: [
         Provider.value(value: api),
         Provider(create: (_) => CardService(api)),
+        Provider(create: (_) => FolderService(api)),
       ],
       child: const FlashcardsApp(),
     ),
@@ -53,7 +55,7 @@ class FlashcardsApp extends StatelessWidget {
       title: 'Flashcards',
       debugShowCheckedModeBanner: false,
       theme: buildFlashcardsTheme(),
-      home: const DeckScreen(),
+      home: const HomeScreen(),
     );
   }
 }
