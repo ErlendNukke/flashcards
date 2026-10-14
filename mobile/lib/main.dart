@@ -1,6 +1,7 @@
 import 'package:flashcards/core/config.dart';
-import 'package:flashcards/screens/home_screen.dart';
+import 'package:flashcards/screens/auth_gate.dart';
 import 'package:flashcards/services/api_client.dart';
+import 'package:flashcards/services/auth_service.dart';
 import 'package:flashcards/services/card_service.dart';
 import 'package:flashcards/services/device_id_service.dart';
 import 'package:flashcards/services/folder_service.dart';
@@ -33,11 +34,14 @@ Future<void> main() async {
   }
   final deviceId = await DeviceIdService().loadOrCreate();
   final api = ApiClient(baseUrl: resolveApiBaseUrl(), deviceId: deviceId);
+  final auth = AuthService(api);
+  await auth.bootstrap();
 
   runApp(
     MultiProvider(
       providers: [
         Provider.value(value: api),
+        ChangeNotifierProvider.value(value: auth),
         Provider(create: (_) => CardService(api)),
         Provider(create: (_) => FolderService(api)),
       ],
@@ -55,7 +59,7 @@ class FlashcardsApp extends StatelessWidget {
       title: 'Flashcards',
       debugShowCheckedModeBanner: false,
       theme: buildFlashcardsTheme(),
-      home: const HomeScreen(),
+      home: const AuthGate(),
     );
   }
 }

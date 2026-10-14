@@ -29,60 +29,60 @@ public class CardService {
     }
 
     @Transactional(readOnly = true)
-    public List<CardResponse> listForDevice(String deviceId, UUID folderId, Boolean unfiled) {
+    public List<CardResponse> listForUser(UUID userId, UUID folderId, Boolean unfiled) {
         List<FlashCard> cards;
         if (Boolean.TRUE.equals(unfiled)) {
-            cards = repository.findByDeviceIdAndFolderIdIsNullOrderByCreatedAtAsc(deviceId);
+            cards = repository.findByUserIdAndFolderIdIsNullOrderByCreatedAtAsc(userId);
         } else if (folderId != null) {
-            folderService.requireOwned(folderId, deviceId);
-            cards = repository.findByDeviceIdAndFolderIdOrderByCreatedAtAsc(deviceId, folderId);
+            folderService.requireOwned(folderId, userId);
+            cards = repository.findByUserIdAndFolderIdOrderByCreatedAtAsc(userId, folderId);
         } else {
-            cards = repository.findByDeviceIdOrderByCreatedAtAsc(deviceId);
+            cards = repository.findByUserIdOrderByCreatedAtAsc(userId);
         }
         return cards.stream().map(CardResponse::from).toList();
     }
 
     @Transactional(readOnly = true)
-    public CardResponse getForDevice(UUID id, String deviceId) {
-        return CardResponse.from(requireOwned(id, deviceId));
+    public CardResponse getForUser(UUID id, UUID userId) {
+        return CardResponse.from(requireOwned(id, userId));
     }
 
     @Transactional
-    public CardResponse create(String deviceId, CardRequest request) {
-        FlashCard card = new FlashCard(deviceId, request.question().trim(), request.answer().trim());
-        card.setFolderId(resolveFolderId(deviceId, request.folderId()));
+    public CardResponse create(UUID userId, CardRequest request) {
+        FlashCard card = new FlashCard(userId, request.question().trim(), request.answer().trim());
+        card.setFolderId(resolveFolderId(userId, request.folderId()));
         return CardResponse.from(repository.save(card));
     }
 
     @Transactional
-    public CardResponse update(UUID id, String deviceId, CardRequest request) {
-        FlashCard card = requireOwned(id, deviceId);
+    public CardResponse update(UUID id, UUID userId, CardRequest request) {
+        FlashCard card = requireOwned(id, userId);
         card.setQuestion(request.question().trim());
         card.setAnswer(request.answer().trim());
-        card.setFolderId(resolveFolderId(deviceId, request.folderId()));
+        card.setFolderId(resolveFolderId(userId, request.folderId()));
         return CardResponse.from(repository.save(card));
     }
 
     @Transactional
-    public void delete(UUID id, String deviceId) {
-        FlashCard card = requireOwned(id, deviceId);
+    public void delete(UUID id, UUID userId) {
+        FlashCard card = requireOwned(id, userId);
         repository.delete(card);
     }
 
     @Transactional
-    public BulkActionResponse bulkDelete(String deviceId, BulkCardIdsRequest request) {
-        List<FlashCard> cards = loadAllRequested(deviceId, request.ids());
+    public BulkActionResponse bulkDelete(UUID userId, BulkCardIdsRequest request) {
+        List<FlashCard> cards = loadAllRequested(userId, request.ids());
         repository.deleteAll(cards);
         return new BulkActionResponse(cards.size());
     }
 
     @Transactional
-    public BulkActionResponse bulkMove(String deviceId, BulkMoveRequest request) {
+    public BulkActionResponse bulkMove(UUID userId, BulkMoveRequest request) {
         UUID folderId = request.folderId();
         if (folderId != null) {
-            folderService.requireOwned(folderId, deviceId);
+            folderService.requireOwned(folderId, userId);
         }
-        List<FlashCard> cards = loadAllRequested(deviceId, request.ids());
+        List<FlashCard> cards = loadAllRequested(userId, request.ids());
         for (FlashCard card : cards) {
             card.setFolderId(folderId);
         }
@@ -90,25 +90,25 @@ public class CardService {
         return new BulkActionResponse(cards.size());
     }
 
-    private List<FlashCard> loadAllRequested(String deviceId, List<UUID> ids) {
+    private List<FlashCard> loadAllRequested(UUID userId, List<UUID> ids) {
         Set<UUID> unique = new HashSet<>(ids);
-        List<FlashCard> cards = repository.findByDeviceIdAndIdIn(deviceId, unique);
+        List<FlashCard> cards = repository.findByUserIdAndIdIn(userId, unique);
         if (cards.size() != unique.size()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "One or more cards were not found");
         }
         return cards;
     }
 
-    private UUID resolveFolderId(String deviceId, UUID folderId) {
+    private UUID resolveFolderId(UUID userId, UUID folderId) {
         if (folderId == null) {
             return null;
         }
-        folderService.requireOwned(folderId, deviceId);
+        folderService.requireOwned(folderId, userId);
         return folderId;
     }
 
-    private FlashCard requireOwned(UUID id, String deviceId) {
-        return repository.findByIdAndDeviceId(id, deviceId)
+    private FlashCard requireOwned(UUID id, UUID userId) {
+        return repository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Card not found"));
     }
 }

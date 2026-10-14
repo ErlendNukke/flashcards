@@ -27,43 +27,40 @@ public class FolderService {
     }
 
     @Transactional(readOnly = true)
-    public LibrarySummaryResponse librarySummary(String deviceId) {
-        List<FolderResponse> folders = folderRepository.findByDeviceIdOrderByNameAsc(deviceId).stream()
-                .map(f -> FolderResponse.from(f, cardRepository.countByDeviceIdAndFolderId(deviceId, f.getId())))
+    public LibrarySummaryResponse librarySummary(UUID userId) {
+        List<FolderResponse> folders = folderRepository.findByUserIdOrderByNameAsc(userId).stream()
+                .map(f -> FolderResponse.from(f, cardRepository.countByUserIdAndFolderId(userId, f.getId())))
                 .toList();
-        long unfiled = folderRepository.countUnfiledByDeviceId(deviceId);
+        long unfiled = folderRepository.countUnfiledByUserId(userId);
         return new LibrarySummaryResponse(folders, unfiled);
     }
 
     @Transactional
-    public FolderResponse create(String deviceId, FolderRequest request) {
+    public FolderResponse create(UUID userId, FolderRequest request) {
         String name = FolderNameValidator.normalize(request.name());
-        if (folderRepository.existsByDeviceIdAndNameIgnoreCase(deviceId, name)) {
+        if (folderRepository.existsByUserIdAndNameIgnoreCase(userId, name)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "A folder with this name already exists");
         }
-        return FolderResponse.from(folderRepository.save(new Folder(deviceId, name)), 0);
+        return FolderResponse.from(folderRepository.save(new Folder(userId, name)), 0);
     }
 
     @Transactional
-    public FolderResponse rename(UUID id, String deviceId, FolderRequest request) {
-        Folder folder = requireOwned(id, deviceId);
+    public FolderResponse rename(UUID id, UUID userId, FolderRequest request) {
+        Folder folder = requireOwned(id, userId);
         String name = FolderNameValidator.normalize(request.name());
         if (!folder.getName().equalsIgnoreCase(name)
-                && folderRepository.existsByDeviceIdAndNameIgnoreCase(deviceId, name)) {
+                && folderRepository.existsByUserIdAndNameIgnoreCase(userId, name)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "A folder with this name already exists");
         }
         folder.setName(name);
-        long count = cardRepository.countByDeviceIdAndFolderId(deviceId, folder.getId());
+        long count = cardRepository.countByUserIdAndFolderId(userId, folder.getId());
         return FolderResponse.from(folderRepository.save(folder), count);
     }
 
-    /**
-     * Deletes the folder and moves its cards to the unfiled bucket (folder_id = null).
-     */
     @Transactional
-    public void delete(UUID id, String deviceId) {
-        Folder folder = requireOwned(id, deviceId);
-        List<FlashCard> cards = cardRepository.findByDeviceIdAndFolderIdOrderByCreatedAtAsc(deviceId, id);
+    public void delete(UUID id, UUID userId) {
+        Folder folder = requireOwned(id, userId);
+        List<FlashCard> cards = cardRepository.findByUserIdAndFolderIdOrderByCreatedAtAsc(userId, id);
         for (FlashCard card : cards) {
             card.setFolderId(null);
         }
@@ -72,8 +69,8 @@ public class FolderService {
     }
 
     @Transactional(readOnly = true)
-    public Folder requireOwned(UUID id, String deviceId) {
-        return folderRepository.findByIdAndDeviceId(id, deviceId)
+    public Folder requireOwned(UUID id, UUID userId) {
+        return folderRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Folder not found"));
     }
 }

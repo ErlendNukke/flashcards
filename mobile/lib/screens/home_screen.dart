@@ -1,5 +1,6 @@
 import 'package:flashcards/models/folder.dart';
 import 'package:flashcards/screens/card_list_screen.dart';
+import 'package:flashcards/services/auth_service.dart';
 import 'package:flashcards/services/folder_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -122,6 +123,20 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Flashcards'),
         actions: [
           IconButton(tooltip: 'Refresh', onPressed: _loading ? null : _load, icon: const Icon(Icons.refresh)),
+          PopupMenuButton<String>(
+            onSelected: (value) async {
+              if (value == 'logout') {
+                await context.read<AuthService>().logout();
+              }
+            },
+            itemBuilder: (context) {
+              final username = context.read<AuthService>().user?.username ?? '';
+              return [
+                PopupMenuItem(enabled: false, child: Text(username, style: const TextStyle(fontWeight: FontWeight.w600))),
+                const PopupMenuItem(value: 'logout', child: Text('Log out')),
+              ];
+            },
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(

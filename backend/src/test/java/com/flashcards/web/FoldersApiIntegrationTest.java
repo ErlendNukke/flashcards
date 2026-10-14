@@ -1,5 +1,6 @@
 package com.flashcards.web;
 
+import com.flashcards.support.AuthTestSupport;
 import com.flashcards.support.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,9 +24,10 @@ class FoldersApiIntegrationTest extends IntegrationTestBase {
     @Test
     void folderCrudAndDeleteMovesCardsToUnfiled() throws Exception {
         String device = UUID.randomUUID().toString();
+        String token = AuthTestSupport.register(mvc, "folders_" + UUID.randomUUID().toString().substring(0, 8), "password123", device);
 
         var created = mvc.perform(post("/api/folders")
-                        .header(CardController.DEVICE_ID_HEADER, device)
+                        .header("Authorization", AuthTestSupport.bearer(token))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(JSON.writeValueAsString(Map.of("name", "Biology"))))
                 .andExpect(status().isCreated())
@@ -36,13 +38,13 @@ class FoldersApiIntegrationTest extends IntegrationTestBase {
         String folderId = JSON.readTree(created.getResponse().getContentAsString()).get("id").asText();
 
         mvc.perform(post("/api/folders")
-                        .header(CardController.DEVICE_ID_HEADER, device)
+                        .header("Authorization", AuthTestSupport.bearer(token))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(JSON.writeValueAsString(Map.of("name", "biology"))))
                 .andExpect(status().isConflict());
 
         mvc.perform(post("/api/cards")
-                        .header(CardController.DEVICE_ID_HEADER, device)
+                        .header("Authorization", AuthTestSupport.bearer(token))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(JSON.writeValueAsString(Map.of(
                                 "question", "Q1",
@@ -52,30 +54,30 @@ class FoldersApiIntegrationTest extends IntegrationTestBase {
                 .andExpect(status().isCreated());
 
         mvc.perform(get("/api/folders")
-                        .header(CardController.DEVICE_ID_HEADER, device))
+                        .header("Authorization", AuthTestSupport.bearer(token)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.unfiledCount").value(0))
                 .andExpect(jsonPath("$.folders[0].cardCount").value(1));
 
         mvc.perform(put("/api/folders/" + folderId)
-                        .header(CardController.DEVICE_ID_HEADER, device)
+                        .header("Authorization", AuthTestSupport.bearer(token))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(JSON.writeValueAsString(Map.of("name", "Chemistry"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Chemistry"));
 
         mvc.perform(delete("/api/folders/" + folderId)
-                        .header(CardController.DEVICE_ID_HEADER, device))
+                        .header("Authorization", AuthTestSupport.bearer(token)))
                 .andExpect(status().isNoContent());
 
         mvc.perform(get("/api/folders")
-                        .header(CardController.DEVICE_ID_HEADER, device))
+                        .header("Authorization", AuthTestSupport.bearer(token)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.folders", hasSize(0)))
                 .andExpect(jsonPath("$.unfiledCount").value(1));
 
         mvc.perform(get("/api/cards")
-                        .header(CardController.DEVICE_ID_HEADER, device)
+                        .header("Authorization", AuthTestSupport.bearer(token))
                         .param("unfiled", "true"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))

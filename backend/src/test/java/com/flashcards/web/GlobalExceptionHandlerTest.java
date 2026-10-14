@@ -20,4 +20,12 @@ class GlobalExceptionHandlerTest {
         assertEquals(404, response.getStatusCode().value());
         assertEquals("Card not found", response.getBody().get("error"));
     }
+
+    @Test
+    void mapsNotAuthenticatedIllegalState() {
+        ResponseEntity<Map<String, Object>> response = handler.handleIllegalState(
+                new IllegalStateException("Not authenticated"));
+        assertEquals(401, response.getStatusCode().value());
+        assertEquals("Not authenticated", response.getBody().get("error"));
+    }
 }

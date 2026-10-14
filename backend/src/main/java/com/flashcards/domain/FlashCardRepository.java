@@ -9,15 +9,19 @@ import java.util.UUID;
 
 public interface FlashCardRepository extends JpaRepository<FlashCard, UUID> {
 
-    List<FlashCard> findByDeviceIdOrderByCreatedAtAsc(String deviceId);
+    List<FlashCard> findByUserIdOrderByCreatedAtAsc(UUID userId);
+
+    List<FlashCard> findByUserIdAndFolderIdOrderByCreatedAtAsc(UUID userId, UUID folderId);
+
+    List<FlashCard> findByUserIdAndFolderIdIsNullOrderByCreatedAtAsc(UUID userId);
+
+    long countByUserIdAndFolderId(UUID userId, UUID folderId);
+
+    List<FlashCard> findByUserIdAndIdIn(UUID userId, Collection<UUID> ids);
+
+    Optional<FlashCard> findByIdAndUserId(UUID id, UUID userId);
 
     List<FlashCard> findByDeviceIdAndFolderIdOrderByCreatedAtAsc(String deviceId, UUID folderId);
 
-    List<FlashCard> findByDeviceIdAndFolderIdIsNullOrderByCreatedAtAsc(String deviceId);
-
-    long countByDeviceIdAndFolderId(String deviceId, UUID folderId);
-
-    List<FlashCard> findByDeviceIdAndIdIn(String deviceId, Collection<UUID> ids);
-
-    Optional<FlashCard> findByIdAndDeviceId(UUID id, String deviceId);
+    List<FlashCard> findByDeviceIdAndUserIdIsNull(String deviceId);
 }

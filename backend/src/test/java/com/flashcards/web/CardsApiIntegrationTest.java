@@ -1,5 +1,6 @@
 package com.flashcards.web;
 
+import com.flashcards.support.AuthTestSupport;
 import com.flashcards.support.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +26,11 @@ class CardsApiIntegrationTest extends IntegrationTestBase {
     MockMvc mvc;
 
     @Test
-    void crudScopedByDeviceId() throws Exception {
+    void crudScopedByUser() throws Exception {
         String deviceA = UUID.randomUUID().toString();
         String deviceB = UUID.randomUUID().toString();
+        String tokenA = AuthTestSupport.register(mvc, "alice_" + UUID.randomUUID().toString().substring(0, 8), "password123", deviceA);
+        String tokenB = AuthTestSupport.register(mvc, "bob_" + UUID.randomUUID().toString().substring(0, 8), "password123", deviceB);
 
         var createBody = JSON.writeValueAsString(Map.of(
                 "question", "What is 2+2?",
@@ -35,7 +38,7 @@ class CardsApiIntegrationTest extends IntegrationTestBase {
         ));
 
         var created = mvc.perform(post("/api/cards")
-                        .header(CardController.DEVICE_ID_HEADER, deviceA)
+                        .header("Authorization", AuthTestSupport.bearer(tokenA))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createBody))
                 .andExpect(status().isCreated())
@@ -46,17 +49,17 @@ class CardsApiIntegrationTest extends IntegrationTestBase {
         String id = JSON.readTree(created.getResponse().getContentAsString()).get("id").asText();
 
         mvc.perform(get("/api/cards")
-                        .header(CardController.DEVICE_ID_HEADER, deviceA))
+                        .header("Authorization", AuthTestSupport.bearer(tokenA)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)));
 
         mvc.perform(get("/api/cards")
-                        .header(CardController.DEVICE_ID_HEADER, deviceB))
+                        .header("Authorization", AuthTestSupport.bearer(tokenB)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
 
         mvc.perform(get("/api/cards/" + id)
-                        .header(CardController.DEVICE_ID_HEADER, deviceB))
+                        .header("Authorization", AuthTestSupport.bearer(tokenB)))
                 .andExpect(status().isNotFound());
 
         var updateBody = JSON.writeValueAsString(Map.of(
@@ -65,26 +68,26 @@ class CardsApiIntegrationTest extends IntegrationTestBase {
         ));
 
         mvc.perform(put("/api/cards/" + id)
-                        .header(CardController.DEVICE_ID_HEADER, deviceA)
+                        .header("Authorization", AuthTestSupport.bearer(tokenA))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(updateBody))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.answer").value("Paris"));
 
         mvc.perform(delete("/api/cards/" + id)
-                        .header(CardController.DEVICE_ID_HEADER, deviceA))
+                        .header("Authorization", AuthTestSupport.bearer(tokenA)))
                 .andExpect(status().isNoContent());
 
         mvc.perform(get("/api/cards")
-                        .header(CardController.DEVICE_ID_HEADER, deviceA))
+                        .header("Authorization", AuthTestSupport.bearer(tokenA)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
     }
 
     @Test
-    void missingDeviceIdRejected() throws Exception {
+    void missingAuthRejected() throws Exception {
         mvc.perform(get("/api/cards"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Missing X-Device-Id header"));
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("Not authenticated"));
     }
 }
