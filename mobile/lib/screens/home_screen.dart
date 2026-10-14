@@ -141,7 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _createFolder,
-        icon: const Icon(Icons.create_new_folder_outlined),
+        icon: const Icon(Icons.add),
         label: const Text('New folder'),
       ),
       body: _buildBody(),
