@@ -1,5 +1,5 @@
 import 'package:flashcards/screens/home_screen.dart';
-import 'package:flashcards/screens/login_screen.dart';
+import 'package:flashcards/screens/welcome_screen.dart';
 import 'package:flashcards/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -14,7 +14,7 @@ class AuthGate extends StatelessWidget {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     if (!auth.isLoggedIn) {
-      return const LoginScreen();
+      return const WelcomeScreen();
     }
     return const HomeScreen();
   }
