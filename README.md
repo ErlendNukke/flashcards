@@ -13,7 +13,13 @@ Simple flashcard study app: question on the front, answer on the back.
 
 ## Data model (no accounts yet)
 
-Each browser or device gets a random **device id** stored in `shared_preferences` (web: local storage). The API scopes cards with the `X-Device-Id` header. Cards are private to that id; there is no login yet.
+Each browser or device gets a random **device id** stored in `shared_preferences` (web: local storage). The API scopes cards and folders with the `X-Device-Id` header. Cards are private to that id; there is no login yet.
+
+### Folders
+
+Folders are **user-created** with any name (up to 120 characters, trimmed, unique per device case-insensitively). Cards can live in a folder or in **Unfiled** (`folderId` null). **Deleting a folder** removes the folder only; its cards are moved to Unfiled.
+
+Study mode can run for one folder or the unfiled list. **Shuffle** order is optional, stored locally per device, with reshuffle and restore-to-sorted-order in the study UI.
 
 ## Quick start (local)
 
@@ -107,8 +113,14 @@ All card routes require header `X-Device-Id`.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/cards` | List cards for device |
-| POST | `/api/cards` | Create `{ "question", "answer" }` |
+| GET | `/api/folders` | Library summary: folders + card counts + `unfiledCount` |
+| POST | `/api/folders` | Create `{ "name" }` |
+| PUT | `/api/folders/{id}` | Rename |
+| DELETE | `/api/folders/{id}` | Delete folder (cards → Unfiled) |
+| GET | `/api/cards` | List cards (`?folderId=`, `?unfiled=true`, or all) |
+| POST | `/api/cards` | Create `{ "question", "answer", "folderId"? }` |
 | GET | `/api/cards/{id}` | Get one card |
 | PUT | `/api/cards/{id}` | Update |
 | DELETE | `/api/cards/{id}` | Delete |
+| POST | `/api/cards/bulk-delete` | `{ "ids": [uuid, ...] }` |
+| POST | `/api/cards/bulk-move` | `{ "ids": [...], "folderId": uuid \| null }` |

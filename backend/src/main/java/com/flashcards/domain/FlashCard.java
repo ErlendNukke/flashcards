@@ -26,6 +26,9 @@ public class FlashCard {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String answer;
 
+    @Column(name = "folder_id")
+    private UUID folderId;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -78,6 +81,14 @@ public class FlashCard {
 
     public void setAnswer(String answer) {
         this.answer = answer;
+    }
+
+    public UUID getFolderId() {
+        return folderId;
+    }
+
+    public void setFolderId(UUID folderId) {
+        this.folderId = folderId;
     }
 
     public Instant getCreatedAt() {

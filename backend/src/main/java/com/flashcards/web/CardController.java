@@ -1,6 +1,9 @@
 package com.flashcards.web;
 
 import com.flashcards.service.CardService;
+import com.flashcards.web.dto.BulkActionResponse;
+import com.flashcards.web.dto.BulkCardIdsRequest;
+import com.flashcards.web.dto.BulkMoveRequest;
 import com.flashcards.web.dto.CardRequest;
 import com.flashcards.web.dto.CardResponse;
 import jakarta.validation.Valid;
@@ -13,6 +16,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,8 +36,12 @@ public class CardController {
     }
 
     @GetMapping
-    public List<CardResponse> list(@RequestHeader(value = DEVICE_ID_HEADER, required = false) String deviceId) {
-        return cardService.listForDevice(requireDeviceId(deviceId));
+    public List<CardResponse> list(
+            @RequestHeader(value = DEVICE_ID_HEADER, required = false) String deviceId,
+            @RequestParam(required = false) UUID folderId,
+            @RequestParam(required = false) Boolean unfiled
+    ) {
+        return cardService.listForDevice(requireDeviceId(deviceId), folderId, unfiled);
     }
 
     @GetMapping("/{id}")
@@ -69,6 +77,22 @@ public class CardController {
             @RequestHeader(value = DEVICE_ID_HEADER, required = false) String deviceId
     ) {
         cardService.delete(id, requireDeviceId(deviceId));
+    }
+
+    @PostMapping("/bulk-delete")
+    public BulkActionResponse bulkDelete(
+            @RequestHeader(value = DEVICE_ID_HEADER, required = false) String deviceId,
+            @Valid @RequestBody BulkCardIdsRequest request
+    ) {
+        return cardService.bulkDelete(requireDeviceId(deviceId), request);
+    }
+
+    @PostMapping("/bulk-move")
+    public BulkActionResponse bulkMove(
+            @RequestHeader(value = DEVICE_ID_HEADER, required = false) String deviceId,
+            @Valid @RequestBody BulkMoveRequest request
+    ) {
+        return cardService.bulkMove(requireDeviceId(deviceId), request);
     }
 
     static String requireDeviceId(String deviceId) {
