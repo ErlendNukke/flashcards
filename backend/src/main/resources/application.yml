@@ -30,7 +30,6 @@ flashcards:
   cors:
     allowed-origins: ${CORS_ORIGINS:}
   jwt:
-    secret: ${JWT_SECRET:dev-only-change-me-use-a-long-random-secret-at-least-32-bytes}
     expiration-ms: ${JWT_EXPIRATION_MS:604800000}
 
 ---
@@ -51,6 +50,10 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
     show-sql: false
 
+flashcards:
+  jwt:
+    secret: ${JWT_SECRET:dev-only-change-me-use-a-long-random-secret-at-least-32-bytes}
+
 ---
 spring:
   config:
@@ -70,6 +73,10 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: false
+
+flashcards:
+  jwt:
+    secret: ${JWT_SECRET}
 
 management:
   health:

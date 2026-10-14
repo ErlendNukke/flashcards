@@ -72,7 +72,7 @@ flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8080
    | `DATABASE_USER` | Neon user |
    | `DATABASE_PASSWORD` | Neon password |
    | `CORS_ORIGINS` | Optional extra origins (comma-separated) |
-   | `JWT_SECRET` | **Required in production.** HMAC secret for signing JWTs (at least 32 random bytes; never commit). Local `dev` profile uses a throwaway default if unset. |
+   | `JWT_SECRET` | **Required in production** (`prod` profile fails to start without it). HMAC secret for signing JWTs (at least 32 random bytes; never commit). The `dev` profile alone supplies a throwaway default when unset. |
    | `JWT_EXPIRATION_MS` | Optional. Token lifetime in ms (default `604800000` = 7 days). |
 
 4. Deploy from `main`; note the public API URL (e.g. `https://flashcards-api-ugap.onrender.com`).
