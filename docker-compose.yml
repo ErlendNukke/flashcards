@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: flashcards
+      POSTGRES_USER: flashcards
+      POSTGRES_PASSWORD: flashcards
+    ports:
+      - "5432:5432"
+    volumes:
+      - fc_pg:/var/lib/postgresql/data
+
+  api:
+    build: ./backend
+    profiles: ["full"]
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DATABASE_URL: jdbc:postgresql://db:5432/flashcards
+      DATABASE_USER: flashcards
+      DATABASE_PASSWORD: flashcards
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+volumes:
+  fc_pg:
