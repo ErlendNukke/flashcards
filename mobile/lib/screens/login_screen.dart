@@ -1,3 +1,4 @@
+import 'package:flashcards/navigation/auth_navigation.dart';
 import 'package:flashcards/screens/sign_up_screen.dart';
 import 'package:flashcards/services/auth_service.dart';
 import 'package:flutter/material.dart';
@@ -41,9 +42,9 @@ class _LoginScreenState extends State<LoginScreen> {
       });
       return;
     }
-    if (mounted) {
-      setState(() => _loading = false);
-    }
+    if (!mounted) return;
+    setState(() => _loading = false);
+    completeAuthentication(context);
   }
 
   @override

@@ -1,3 +1,4 @@
+import 'package:flashcards/navigation/auth_navigation.dart';
 import 'package:flashcards/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -32,7 +33,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             username: _username.text.trim(),
             password: _password.text,
           );
-      if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
+      if (mounted) completeAuthentication(context);
     } catch (e) {
       if (!mounted) return;
       setState(() {
