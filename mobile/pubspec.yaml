@@ -26,13 +26,13 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: assets/icon/app_icon.png
-  adaptive_icon_background: "#4A2288"
+  adaptive_icon_background: "#3E26A9"
   adaptive_icon_foreground: assets/icon/app_icon.png
   web:
     generate: true
     image_path: assets/icon/app_icon.png
-    background_color: "#4A2288"
-    theme_color: "#4A2288"
+    background_color: "#3E26A9"
+    theme_color: "#3E26A9"
 
 flutter:
   uses-material-design: true
