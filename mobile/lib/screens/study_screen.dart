@@ -7,10 +7,18 @@ import 'package:flashcards/widgets/flip_card.dart';
 import 'package:flutter/material.dart';
 
 class StudyScreen extends StatefulWidget {
-  const StudyScreen({super.key, required this.title, required this.cards});
+  const StudyScreen({
+    super.key,
+    required this.title,
+    required this.cards,
+    this.shuffleRandom,
+    StudyPreferences? preferences,
+  }) : _preferences = preferences;
 
   final String title;
   final List<FlashCard> cards;
+  final Random? shuffleRandom;
+  final StudyPreferences? _preferences;
 
   @override
   State<StudyScreen> createState() => _StudyScreenState();
@@ -20,55 +28,81 @@ class _StudyScreenState extends State<StudyScreen> {
   late final List<FlashCard> _original;
   late List<FlashCard> _session;
   late int _index;
+  late PageController _pageController;
   bool _shuffleEnabled = false;
-  final _preferences = StudyPreferences();
+  final Map<int, int> _visitToken = {};
+  late final StudyPreferences _preferences;
+
+  Random get _random => widget.shuffleRandom ?? Random();
 
   @override
   void initState() {
     super.initState();
+    _preferences = widget._preferences ?? StudyPreferences();
     _original = List.of(widget.cards);
     _session = List.of(_original);
     _index = 0;
+    _pageController = PageController(initialPage: 0);
+    _visitToken[0] = 0;
     _loadPreference();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadPreference() async {
     final enabled = await _preferences.isShuffleEnabled();
     if (!mounted) return;
+    if (enabled) {
+      _applySession(shuffledCopy(_original, _random), shuffleEnabled: true);
+    } else {
+      setState(() => _shuffleEnabled = false);
+    }
+  }
+
+  void _applySession(List<FlashCard> session, {required bool shuffleEnabled}) {
     setState(() {
-      _shuffleEnabled = enabled;
-      if (enabled) {
-        _session = shuffledCopy(_original, Random());
-        _index = 0;
-      }
+      _shuffleEnabled = shuffleEnabled;
+      _session = session;
+      _index = 0;
+      _visitToken.clear();
+      _visitToken[0] = 0;
+    });
+    if (_pageController.hasClients) {
+      _pageController.jumpToPage(0);
+    }
+  }
+
+  void _onPageChanged(int next) {
+    if (next == _index) return;
+    setState(() {
+      _index = next;
+      _visitToken[next] = (_visitToken[next] ?? 0) + 1;
     });
   }
 
-  FlashCard get _current => _session[_index];
-
-  void _goTo(int next) {
-    if (next < 0 || next >= _session.length) return;
-    setState(() => _index = next);
+  Future<void> _animateToPage(int page) async {
+    if (page < 0 || page >= _session.length || page == _index) return;
+    await _pageController.animateToPage(
+      page,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   Future<void> _setShuffle(bool enabled) async {
-    final currentId = _session[_index].id;
-    setState(() {
-      _shuffleEnabled = enabled;
-      _session = enabled ? shuffledCopy(_original, Random()) : List.of(_original);
-      final newIndex = _session.indexWhere((c) => c.id == currentId);
-      _index = newIndex >= 0 ? newIndex : 0;
-    });
+    _applySession(
+      enabled ? shuffledCopy(_original, _random) : List.of(_original),
+      shuffleEnabled: enabled,
+    );
     await _preferences.setShuffleEnabled(enabled);
   }
 
   void _reshuffle() {
-    final currentId = _session[_index].id;
-    setState(() {
-      _session = shuffledCopy(_original, Random());
-      final newIndex = _session.indexWhere((c) => c.id == currentId);
-      _index = newIndex >= 0 ? newIndex : 0;
-    });
+    _applySession(shuffledCopy(_original, _random), shuffleEnabled: true);
   }
 
   @override
@@ -106,12 +140,21 @@ class _StudyScreenState extends State<StudyScreen> {
             ),
             const SizedBox(height: 8),
             Expanded(
-              child: FlipCard(
-                key: ValueKey(_current.id),
-                frontLabel: 'Question',
-                frontText: _current.question,
-                backLabel: 'Answer',
-                backText: _current.answer,
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: _onPageChanged,
+                itemCount: _session.length,
+                itemBuilder: (context, i) {
+                  final card = _session[i];
+                  final token = _visitToken[i] ?? 0;
+                  return FlipCard(
+                    key: ValueKey('${card.id}_$token'),
+                    frontLabel: 'Question',
+                    frontText: card.question,
+                    backLabel: 'Answer',
+                    backText: card.answer,
+                  );
+                },
               ),
             ),
             const SizedBox(height: 16),
@@ -119,7 +162,7 @@ class _StudyScreenState extends State<StudyScreen> {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: _index > 0 ? () => _goTo(_index - 1) : null,
+                    onPressed: _index > 0 ? () => _animateToPage(_index - 1) : null,
                     icon: const Icon(Icons.chevron_left),
                     label: const Text('Previous'),
                   ),
@@ -127,7 +170,7 @@ class _StudyScreenState extends State<StudyScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: FilledButton.icon(
-                    onPressed: _index < _session.length - 1 ? () => _goTo(_index + 1) : null,
+                    onPressed: _index < _session.length - 1 ? () => _animateToPage(_index + 1) : null,
                     icon: const Icon(Icons.chevron_right),
                     label: const Text('Next'),
                   ),
