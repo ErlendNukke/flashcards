@@ -10,12 +10,16 @@ import java.util.UUID;
 
 public interface FolderRepository extends JpaRepository<Folder, UUID> {
 
-    List<Folder> findByDeviceIdOrderByNameAsc(String deviceId);
+    List<Folder> findByUserIdOrderByNameAsc(UUID userId);
 
-    Optional<Folder> findByIdAndDeviceId(UUID id, String deviceId);
+    Optional<Folder> findByIdAndUserId(UUID id, UUID userId);
 
-    boolean existsByDeviceIdAndNameIgnoreCase(String deviceId, String name);
+    boolean existsByUserIdAndNameIgnoreCase(UUID userId, String name);
 
-    @Query("SELECT COUNT(c) FROM FlashCard c WHERE c.deviceId = :deviceId AND c.folderId IS NULL")
-    long countUnfiledByDeviceId(@Param("deviceId") String deviceId);
+    List<Folder> findByDeviceIdAndUserIdIsNull(String deviceId);
+
+    Optional<Folder> findByUserIdAndNameIgnoreCase(UUID userId, String name);
+
+    @Query("SELECT COUNT(c) FROM FlashCard c WHERE c.userId = :userId AND c.folderId IS NULL")
+    long countUnfiledByUserId(@Param("userId") UUID userId);
 }

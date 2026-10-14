@@ -1,5 +1,6 @@
 package com.flashcards.web;
 
+import com.flashcards.support.AuthTestSupport;
 import com.flashcards.support.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,20 +26,21 @@ class BulkCardsApiIntegrationTest extends IntegrationTestBase {
     @Test
     void bulkMoveAndBulkDelete() throws Exception {
         String device = UUID.randomUUID().toString();
+        String token = AuthTestSupport.register(mvc, "bulk_" + UUID.randomUUID().toString().substring(0, 8), "password123", device);
 
         MvcResult folder = mvc.perform(post("/api/folders")
-                        .header(CardController.DEVICE_ID_HEADER, device)
+                        .header("Authorization", AuthTestSupport.bearer(token))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(JSON.writeValueAsString(Map.of("name", "Deck A"))))
                 .andExpect(status().isCreated())
                 .andReturn();
         String folderId = JSON.readTree(folder.getResponse().getContentAsString()).get("id").asText();
 
-        String id1 = createCard(device, "One", "1");
-        String id2 = createCard(device, "Two", "2");
+        String id1 = createCard(token, "One", "1");
+        String id2 = createCard(token, "Two", "2");
 
         mvc.perform(post("/api/cards/bulk-move")
-                        .header(CardController.DEVICE_ID_HEADER, device)
+                        .header("Authorization", AuthTestSupport.bearer(token))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(JSON.writeValueAsString(Map.of(
                                 "ids", List.of(id1, id2),
@@ -48,28 +50,28 @@ class BulkCardsApiIntegrationTest extends IntegrationTestBase {
                 .andExpect(jsonPath("$.affected").value(2));
 
         mvc.perform(get("/api/cards")
-                        .header(CardController.DEVICE_ID_HEADER, device)
+                        .header("Authorization", AuthTestSupport.bearer(token))
                         .param("folderId", folderId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)));
 
         mvc.perform(post("/api/cards/bulk-delete")
-                        .header(CardController.DEVICE_ID_HEADER, device)
+                        .header("Authorization", AuthTestSupport.bearer(token))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(JSON.writeValueAsString(Map.of("ids", List.of(id1)))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.affected").value(1));
 
         mvc.perform(get("/api/cards")
-                        .header(CardController.DEVICE_ID_HEADER, device)
+                        .header("Authorization", AuthTestSupport.bearer(token))
                         .param("folderId", folderId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)));
     }
 
-    private String createCard(String device, String q, String a) throws Exception {
+    private String createCard(String token, String q, String a) throws Exception {
         MvcResult result = mvc.perform(post("/api/cards")
-                        .header(CardController.DEVICE_ID_HEADER, device)
+                        .header("Authorization", AuthTestSupport.bearer(token))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(JSON.writeValueAsString(Map.of("question", q, "answer", a))))
                 .andExpect(status().isCreated())

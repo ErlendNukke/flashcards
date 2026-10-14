@@ -1,5 +1,7 @@
 package com.flashcards.web;
 
+import com.flashcards.domain.AppUser;
+import com.flashcards.security.SecurityUtils;
 import com.flashcards.service.FolderService;
 import com.flashcards.web.dto.FolderRequest;
 import com.flashcards.web.dto.FolderResponse;
@@ -12,7 +14,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,36 +31,28 @@ public class FolderController {
     }
 
     @GetMapping
-    public LibrarySummaryResponse list(
-            @RequestHeader(value = CardController.DEVICE_ID_HEADER, required = false) String deviceId
-    ) {
-        return folderService.librarySummary(CardController.requireDeviceId(deviceId));
+    public LibrarySummaryResponse list() {
+        AppUser user = SecurityUtils.requireCurrentUser();
+        return folderService.librarySummary(user.getId());
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public FolderResponse create(
-            @RequestHeader(value = CardController.DEVICE_ID_HEADER, required = false) String deviceId,
-            @Valid @RequestBody FolderRequest request
-    ) {
-        return folderService.create(CardController.requireDeviceId(deviceId), request);
+    public FolderResponse create(@Valid @RequestBody FolderRequest request) {
+        AppUser user = SecurityUtils.requireCurrentUser();
+        return folderService.create(user.getId(), request);
     }
 
     @PutMapping("/{id}")
-    public FolderResponse rename(
-            @PathVariable UUID id,
-            @RequestHeader(value = CardController.DEVICE_ID_HEADER, required = false) String deviceId,
-            @Valid @RequestBody FolderRequest request
-    ) {
-        return folderService.rename(id, CardController.requireDeviceId(deviceId), request);
+    public FolderResponse rename(@PathVariable UUID id, @Valid @RequestBody FolderRequest request) {
+        AppUser user = SecurityUtils.requireCurrentUser();
+        return folderService.rename(id, user.getId(), request);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(
-            @PathVariable UUID id,
-            @RequestHeader(value = CardController.DEVICE_ID_HEADER, required = false) String deviceId
-    ) {
-        folderService.delete(id, CardController.requireDeviceId(deviceId));
+    public void delete(@PathVariable UUID id) {
+        AppUser user = SecurityUtils.requireCurrentUser();
+        folderService.delete(id, user.getId());
     }
 }

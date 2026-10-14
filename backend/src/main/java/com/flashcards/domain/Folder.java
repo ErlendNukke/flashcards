@@ -17,8 +17,11 @@ public class Folder {
     @Id
     private UUID id;
 
-    @Column(name = "device_id", nullable = false, length = 64)
+    @Column(name = "device_id", length = 64)
     private String deviceId;
+
+    @Column(name = "user_id")
+    private UUID userId;
 
     @Column(nullable = false, length = 120)
     private String name;
@@ -35,6 +38,12 @@ public class Folder {
     public Folder(String deviceId, String name) {
         this.id = UUID.randomUUID();
         this.deviceId = deviceId;
+        this.name = name;
+    }
+
+    public Folder(UUID userId, String name) {
+        this.id = UUID.randomUUID();
+        this.userId = userId;
         this.name = name;
     }
 
@@ -58,6 +67,14 @@ public class Folder {
 
     public String getDeviceId() {
         return deviceId;
+    }
+
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
     }
 
     public String getName() {

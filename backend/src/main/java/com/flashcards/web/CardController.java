@@ -1,5 +1,7 @@
 package com.flashcards.web;
 
+import com.flashcards.domain.AppUser;
+import com.flashcards.security.SecurityUtils;
 import com.flashcards.service.CardService;
 import com.flashcards.web.dto.BulkActionResponse;
 import com.flashcards.web.dto.BulkCardIdsRequest;
@@ -37,67 +39,54 @@ public class CardController {
 
     @GetMapping
     public List<CardResponse> list(
-            @RequestHeader(value = DEVICE_ID_HEADER, required = false) String deviceId,
             @RequestParam(required = false) UUID folderId,
             @RequestParam(required = false) Boolean unfiled
     ) {
-        return cardService.listForDevice(requireDeviceId(deviceId), folderId, unfiled);
+        AppUser user = SecurityUtils.requireCurrentUser();
+        return cardService.listForUser(user.getId(), folderId, unfiled);
     }
 
     @GetMapping("/{id}")
-    public CardResponse get(
-            @PathVariable UUID id,
-            @RequestHeader(value = DEVICE_ID_HEADER, required = false) String deviceId
-    ) {
-        return cardService.getForDevice(id, requireDeviceId(deviceId));
+    public CardResponse get(@PathVariable UUID id) {
+        AppUser user = SecurityUtils.requireCurrentUser();
+        return cardService.getForUser(id, user.getId());
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CardResponse create(
-            @RequestHeader(value = DEVICE_ID_HEADER, required = false) String deviceId,
-            @Valid @RequestBody CardRequest request
-    ) {
-        return cardService.create(requireDeviceId(deviceId), request);
+    public CardResponse create(@Valid @RequestBody CardRequest request) {
+        AppUser user = SecurityUtils.requireCurrentUser();
+        return cardService.create(user.getId(), request);
     }
 
     @PutMapping("/{id}")
-    public CardResponse update(
-            @PathVariable UUID id,
-            @RequestHeader(value = DEVICE_ID_HEADER, required = false) String deviceId,
-            @Valid @RequestBody CardRequest request
-    ) {
-        return cardService.update(id, requireDeviceId(deviceId), request);
+    public CardResponse update(@PathVariable UUID id, @Valid @RequestBody CardRequest request) {
+        AppUser user = SecurityUtils.requireCurrentUser();
+        return cardService.update(id, user.getId(), request);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(
-            @PathVariable UUID id,
-            @RequestHeader(value = DEVICE_ID_HEADER, required = false) String deviceId
-    ) {
-        cardService.delete(id, requireDeviceId(deviceId));
+    public void delete(@PathVariable UUID id) {
+        AppUser user = SecurityUtils.requireCurrentUser();
+        cardService.delete(id, user.getId());
     }
 
     @PostMapping("/bulk-delete")
-    public BulkActionResponse bulkDelete(
-            @RequestHeader(value = DEVICE_ID_HEADER, required = false) String deviceId,
-            @Valid @RequestBody BulkCardIdsRequest request
-    ) {
-        return cardService.bulkDelete(requireDeviceId(deviceId), request);
+    public BulkActionResponse bulkDelete(@Valid @RequestBody BulkCardIdsRequest request) {
+        AppUser user = SecurityUtils.requireCurrentUser();
+        return cardService.bulkDelete(user.getId(), request);
     }
 
     @PostMapping("/bulk-move")
-    public BulkActionResponse bulkMove(
-            @RequestHeader(value = DEVICE_ID_HEADER, required = false) String deviceId,
-            @Valid @RequestBody BulkMoveRequest request
-    ) {
-        return cardService.bulkMove(requireDeviceId(deviceId), request);
+    public BulkActionResponse bulkMove(@Valid @RequestBody BulkMoveRequest request) {
+        AppUser user = SecurityUtils.requireCurrentUser();
+        return cardService.bulkMove(user.getId(), request);
     }
 
-    static String requireDeviceId(String deviceId) {
+    static String optionalDeviceId(String deviceId) {
         if (deviceId == null || deviceId.isBlank()) {
-            throw new IllegalArgumentException("Missing X-Device-Id header");
+            return null;
         }
         String trimmed = deviceId.trim();
         if (trimmed.length() > 64) {

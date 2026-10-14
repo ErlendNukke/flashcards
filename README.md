@@ -11,13 +11,17 @@ Simple flashcard study app: question on the front, answer on the back.
 | DB | PostgreSQL (prod) / H2 (dev) |
 | Migrations | Flyway |
 
-## Data model (no accounts yet)
+## Accounts and data ownership
 
-Each browser or device gets a random **device id** stored in `shared_preferences` (web: local storage). The API scopes cards and folders with the `X-Device-Id` header. Cards are private to that id; there is no login yet.
+Users sign up with a **username** and **password** (BCrypt-hashed on the server). The API returns a **JWT**; the Flutter app stores it in `shared_preferences` (`flashcards_token`, `flashcards_user`) and sends `Authorization: Bearer <token>` on card and folder requests.
+
+Each install still has a stable **device id** (`flashcards_device_id`) used only on `POST /api/auth/register` and `POST /api/auth/login`. On first sign-up or log-in from that device, any legacy rows tied to that device id (anonymous `user_id IS NULL`) are **claimed** into the account. After that, library data is owned by `user_id` and syncs on any device after login.
+
+Usernames are stored lowercase, unique case-insensitively (3–32 characters, letters, numbers, underscore).
 
 ### Folders
 
-Folders are **user-created** with any name (up to 120 characters, trimmed, unique per device case-insensitively). Cards can live in a folder or in **Unfiled** (`folderId` null). **Deleting a folder** removes the folder only; its cards are moved to Unfiled.
+Folders are **user-created** with any name (up to 120 characters, trimmed, unique per account case-insensitively). Cards can live in a folder or in **Unfiled** (`folderId` null). **Deleting a folder** removes the folder only; its cards are moved to Unfiled.
 
 Study mode can run for one folder or the unfiled list. **Shuffle** order is optional, stored locally per device, with reshuffle and restore-to-sorted-order in the study UI.
 
@@ -68,6 +72,8 @@ flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8080
    | `DATABASE_USER` | Neon user |
    | `DATABASE_PASSWORD` | Neon password |
    | `CORS_ORIGINS` | Optional extra origins (comma-separated) |
+   | `JWT_SECRET` | **Required in production.** HMAC secret for signing JWTs (at least 32 random bytes; never commit). Local `dev` profile uses a throwaway default if unset. |
+   | `JWT_EXPIRATION_MS` | Optional. Token lifetime in ms (default `604800000` = 7 days). |
 
 4. Deploy from `main`; note the public API URL (e.g. `https://flashcards-api-ugap.onrender.com`).
 
@@ -109,10 +115,13 @@ docker-compose.yml
 
 ## API
 
-All card routes require header `X-Device-Id`.
+Card and folder routes require `Authorization: Bearer <jwt>` from `/api/auth/register` or `/api/auth/login`. Register and login accept optional `X-Device-Id` to claim anonymous device data.
 
 | Method | Path | Description |
 |--------|------|-------------|
+| POST | `/api/auth/register` | `{ "username", "password" }` → `{ "token", "user" }` |
+| POST | `/api/auth/login` | `{ "username", "password" }` → `{ "token", "user" }` |
+| GET | `/api/auth/me` | Current user (Bearer token) |
 | GET | `/api/folders` | Library summary: folders + card counts + `unfiledCount` |
 | POST | `/api/folders` | Create `{ "name" }` |
 | PUT | `/api/folders/{id}` | Rename |

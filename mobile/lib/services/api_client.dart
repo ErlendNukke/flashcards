@@ -18,15 +18,23 @@ class ApiClient {
   final http.Client _client;
   final String baseUrl;
   String? deviceId;
+  String? token;
 
   Uri _uri(String path) => Uri.parse('$baseUrl$path');
 
-  Map<String, String> _headers({bool jsonBody = false}) {
+  Map<String, String> _headers({
+    bool jsonBody = false,
+    bool auth = true,
+    bool includeDeviceId = false,
+  }) {
     final headers = <String, String>{};
     if (jsonBody) {
       headers['Content-Type'] = 'application/json';
     }
-    if (deviceId != null && deviceId!.isNotEmpty) {
+    if (auth && token != null) {
+      headers['Authorization'] = 'Bearer $token';
+    }
+    if (includeDeviceId && deviceId != null && deviceId!.isNotEmpty) {
       headers['X-Device-Id'] = deviceId!;
     }
     return headers;
@@ -37,8 +45,14 @@ class ApiClient {
     String path, {
     Map<String, dynamic>? body,
     T Function(dynamic json)? parser,
+    bool auth = true,
+    bool includeDeviceId = false,
   }) async {
-    final headers = _headers(jsonBody: body != null);
+    final headers = _headers(
+      jsonBody: body != null,
+      auth: auth,
+      includeDeviceId: includeDeviceId,
+    );
     final uri = _uri(path);
     final encoded = body == null ? null : jsonEncode(body);
 

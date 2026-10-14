@@ -17,7 +17,7 @@ public class FlashCard {
     @Id
     private UUID id;
 
-    @Column(name = "device_id", nullable = false, length = 64)
+    @Column(name = "device_id", length = 64)
     private String deviceId;
 
     @Column(nullable = false, columnDefinition = "TEXT")
@@ -28,6 +28,9 @@ public class FlashCard {
 
     @Column(name = "folder_id")
     private UUID folderId;
+
+    @Column(name = "user_id")
+    private UUID userId;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -41,6 +44,13 @@ public class FlashCard {
     public FlashCard(String deviceId, String question, String answer) {
         this.id = UUID.randomUUID();
         this.deviceId = deviceId;
+        this.question = question;
+        this.answer = answer;
+    }
+
+    public FlashCard(UUID userId, String question, String answer) {
+        this.id = UUID.randomUUID();
+        this.userId = userId;
         this.question = question;
         this.answer = answer;
     }
@@ -89,6 +99,14 @@ public class FlashCard {
 
     public void setFolderId(UUID folderId) {
         this.folderId = folderId;
+    }
+
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
     }
 
     public Instant getCreatedAt() {

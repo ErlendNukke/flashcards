@@ -21,6 +21,14 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalState(IllegalStateException ex) {
+        HttpStatus status = "Not authenticated".equals(ex.getMessage())
+                ? HttpStatus.UNAUTHORIZED
+                : HttpStatus.INTERNAL_SERVER_ERROR;
+        return error(status, ex.getMessage());
+    }
+
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<Map<String, Object>> handleResponseStatus(ResponseStatusException ex) {
         HttpStatus status = HttpStatus.resolve(ex.getStatusCode().value());
