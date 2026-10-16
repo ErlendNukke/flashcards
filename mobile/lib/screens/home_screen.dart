@@ -2,6 +2,7 @@ import 'package:flashcards/models/folder.dart';
 import 'package:flashcards/screens/card_list_screen.dart';
 import 'package:flashcards/services/auth_service.dart';
 import 'package:flashcards/services/folder_service.dart';
+import 'package:flashcards/utils/app_scroll.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -167,13 +168,16 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     final library = _library!;
     return ListView(
+      physics: appScrollPhysics,
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
       children: [
-        _FolderTile(
+        RepaintBoundary(
+          child: _FolderTile(
           icon: Icons.inbox_outlined,
           title: 'Unfiled',
           subtitle: '${library.unfiledCount} card(s)',
           onTap: _openUnfiled,
+          ),
         ),
         const SizedBox(height: 8),
         if (library.folders.isEmpty)
@@ -190,13 +194,15 @@ class _HomeScreenState extends State<HomeScreen> {
         ...library.folders.map(
           (folder) => Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: _FolderTile(
-              icon: Icons.folder_outlined,
-              title: folder.name,
-              subtitle: '${folder.cardCount} card(s)',
-              onTap: () => _openFolder(folder),
-              onRename: () => _renameFolder(folder),
-              onDelete: () => _deleteFolder(folder),
+            child: RepaintBoundary(
+              child: _FolderTile(
+                icon: Icons.folder_outlined,
+                title: folder.name,
+                subtitle: '${folder.cardCount} card(s)',
+                onTap: () => _openFolder(folder),
+                onRename: () => _renameFolder(folder),
+                onDelete: () => _deleteFolder(folder),
+              ),
             ),
           ),
         ),

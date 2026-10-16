@@ -1,0 +1,14 @@
+{
+  "label": "after-wasm",
+  "cpuThrottleRate": 4,
+  "device": "iPhone 13 emulation (Playwright)",
+  "rendererHint": "auto/html",
+  "sampleDurationMs": 4000,
+  "sampleCount": 109,
+  "avgFrameMs": 37.12201834863069,
+  "medianFrameMs": 49.70000000111759,
+  "p95FrameMs": 71.59999999962747,
+  "framesOver16ms": 61,
+  "framesOver16Pct": 55.96330275229357,
+  "estimatedFps": 20.120724345624012
+}

@@ -1,5 +1,6 @@
 import 'package:flashcards/screens/login_screen.dart';
 import 'package:flashcards/screens/sign_up_screen.dart';
+import 'package:flashcards/utils/app_scroll.dart';
 import 'package:flutter/material.dart';
 
 /// Brand indigo used for launcher icons and web theme.
@@ -15,93 +16,111 @@ class WelcomeScreen extends StatelessWidget {
     final isWide = size.width >= 720;
 
     return Scaffold(
-      body: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              kFlashcardsIndigo.withValues(alpha: 0.08),
-              theme.colorScheme.surface,
-              theme.colorScheme.surface,
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: isWide ? 48 : 32),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 560),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _HeroHeader(isWide: isWide),
-                    const SizedBox(height: 32),
-                    Text(
-                      'Write a question on one side and the answer on the other, '
-                      'then study until it sticks.',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        height: 1.45,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+      backgroundColor: theme.colorScheme.surface,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          RepaintBoundary(
+            child: ColoredBox(
+              color: theme.colorScheme.surface,
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: Container(
+                  height: isWide ? 320 : 260,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        kFlashcardsIndigo.withValues(alpha: 0.1),
+                        theme.colorScheme.surface,
+                      ],
                     ),
-                    const SizedBox(height: 32),
-                    if (isWide)
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: _featureTiles(context)
-                            .map((w) => Expanded(child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                                  child: w,
-                                )))
-                            .toList(),
-                      )
-                    else
-                      ..._featureTiles(context).map(
-                        (w) => Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: w,
-                        ),
-                      ),
-                    SizedBox(height: isWide ? 40 : 32),
-                    FilledButton(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const SignUpScreen()),
-                      ),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: kFlashcardsIndigo,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                      ),
-                      child: const Text('Sign up'),
-                    ),
-                    const SizedBox(height: 12),
-                    OutlinedButton(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const LoginScreen()),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: kFlashcardsIndigo,
-                        side: const BorderSide(color: kFlashcardsIndigo),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                      ),
-                      child: const Text('Log in'),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
+          SafeArea(
+            child: SingleChildScrollView(
+              physics: appScrollPhysics,
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: isWide ? 48 : 32),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 560),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      RepaintBoundary(child: _HeroHeader(isWide: isWide)),
+                      const SizedBox(height: 32),
+                      Text(
+                        'Write a question on one side and the answer on the other, '
+                        'then study until it sticks.',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          height: 1.45,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      if (isWide)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: _featureTiles()
+                              .map((w) => Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                                      child: w,
+                                    ),
+                                  ))
+                              .toList(),
+                        )
+                      else
+                        ..._featureTiles().map(
+                          (w) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: w,
+                          ),
+                        ),
+                      SizedBox(height: isWide ? 40 : 32),
+                      FilledButton(
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const SignUpScreen()),
+                        ),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: kFlashcardsIndigo,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
+                        child: const Text('Sign up'),
+                      ),
+                      const SizedBox(height: 12),
+                      OutlinedButton(
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: kFlashcardsIndigo,
+                          side: const BorderSide(color: kFlashcardsIndigo),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
+                        child: const Text('Log in'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  List<Widget> _featureTiles(BuildContext context) {
+  List<Widget> _featureTiles() {
     return const [
       _FeatureTile(
         icon: Icons.folder_outlined,
@@ -131,18 +150,13 @@ class _HeroHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final iconSize = isWide ? 96.0 : 80.0;
+    final cachePx = (iconSize * MediaQuery.devicePixelRatioOf(context)).round();
     return Column(
       children: [
-        Container(
+        DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: kFlashcardsIndigo.withValues(alpha: 0.25),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
-              ),
-            ],
+            border: Border.all(color: kFlashcardsIndigo.withValues(alpha: 0.2)),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(24),
@@ -151,6 +165,9 @@ class _HeroHeader extends StatelessWidget {
               width: iconSize,
               height: iconSize,
               fit: BoxFit.cover,
+              cacheWidth: cachePx,
+              cacheHeight: cachePx,
+              filterQuality: FilterQuality.medium,
             ),
           ),
         ),
@@ -182,27 +199,29 @@ class _FeatureTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: kFlashcardsIndigo, size: 28),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              description,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                height: 1.4,
+    return RepaintBoundary(
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: kFlashcardsIndigo, size: 28),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
               ),
-            ),
-          ],
+              const SizedBox(height: 6),
+              Text(
+                description,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

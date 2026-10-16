@@ -1,5 +1,6 @@
 import 'package:flashcards/navigation/auth_navigation.dart';
 import 'package:flashcards/services/auth_service.dart';
+import 'package:flashcards/utils/app_scroll.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -49,6 +50,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       appBar: AppBar(title: const Text('Sign up')),
       body: SafeArea(
         child: ListView(
+          physics: appScrollPhysics,
           padding: const EdgeInsets.all(24),
           children: [
             Text(
