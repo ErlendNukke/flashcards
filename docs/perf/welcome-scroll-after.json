@@ -1,0 +1,14 @@
+{
+  "label": "after",
+  "cpuThrottleRate": 4,
+  "device": "iPhone 13 emulation (Playwright)",
+  "rendererHint": "auto/html",
+  "sampleDurationMs": 4000,
+  "sampleCount": 92,
+  "avgFrameMs": 43.91521739129625,
+  "medianFrameMs": 66.59999999962747,
+  "p95FrameMs": 77.59999999962747,
+  "framesOver16ms": 52,
+  "framesOver16Pct": 56.52173913043478,
+  "estimatedFps": 15.015015015099001
+}

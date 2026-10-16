@@ -1,6 +1,7 @@
 import 'package:flashcards/models/flash_card.dart';
 import 'package:flashcards/models/folder.dart';
 import 'package:flashcards/services/card_service.dart';
+import 'package:flashcards/utils/app_scroll.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -92,6 +93,7 @@ class _CardFormScreenState extends State<CardFormScreen> {
       body: Form(
         key: _formKey,
         child: ListView(
+          physics: appScrollPhysics,
           padding: const EdgeInsets.all(16),
           children: [
             Text('Folder', style: Theme.of(context).textTheme.titleSmall),

@@ -4,6 +4,7 @@ import 'package:flashcards/screens/card_form_screen.dart';
 import 'package:flashcards/screens/study_screen.dart';
 import 'package:flashcards/services/card_service.dart';
 import 'package:flashcards/services/folder_service.dart';
+import 'package:flashcards/utils/app_scroll.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -308,13 +309,15 @@ class _CardListScreenState extends State<CardListScreen> {
           ),
         Expanded(
           child: ListView.separated(
+            physics: appScrollPhysics,
             padding: EdgeInsets.fromLTRB(16, 16, 16, _selectionMode ? 16 : 96),
             itemCount: cards.length,
             separatorBuilder: (context, index) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
               final card = cards[index];
               final selected = _selected.contains(card.id);
-              return ListTile(
+              return RepaintBoundary(
+                child: ListTile(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                   side: BorderSide(
@@ -355,6 +358,7 @@ class _CardListScreenState extends State<CardListScreen> {
                           PopupMenuItem(value: 'select', child: Text('Select')),
                         ],
                       ),
+                ),
               );
             },
           ),
